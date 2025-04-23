@@ -17,7 +17,6 @@ class VehiclePositions:
 
         vehicle_positions = []
         for data in context.data.values():
-
             if "position" in data:
                 position = data.get("position", {})
 
@@ -26,39 +25,31 @@ class VehiclePositions:
 
                 trip_data = TripMapper.map(route_id, device_time)
 
-                if trip_data and len(trip_data) == 6:
+                if not trip_data or len(trip_data) < 1:
+                    continue
 
-                    (
-                        trip_id,
-                        stop_id,
-                        stop_lat,
-                        stop_lon,
-                        stop_arrival_time,
-                        stop_departure_time,
-                        stop_sequence
-                    ) = trip_data
+                trip_id = trip_data[0]
+
+                entity_id = data["id"]
                 
-                    if trip_id is not None:
-                        entity_id = data["id"]
-                        
-                        params = {
-                            "entity_id": entity_id,
-                            "route_id": route_id,
-                            "trip_id": trip_id,
-                            "vehicle_id": data["name"],
-                            "bearing": position["course"],
-                            "latitude": position["latitude"],
-                            "longitude": position["longitude"]
-                        }
+                params = {
+                    "entity_id": entity_id,
+                    "route_id": route_id,
+                    "trip_id": trip_id,
+                    "vehicle_id": data["name"],
+                    "bearing": position["course"],
+                    "latitude": position["latitude"],
+                    "longitude": position["longitude"]
+                }
 
-                        if entity_id in VehiclePositions._known_ids:
-                            updated += 1
-                        else:
-                            created += 1
-                            VehiclePositions._known_ids.add(entity_id)
+                if entity_id in VehiclePositions._known_ids:
+                    updated += 1
+                else:
+                    created += 1
+                    VehiclePositions._known_ids.add(entity_id)
 
-                        vehicle_position = VehiclePosition.create(**params)
-                        vehicle_positions.append(vehicle_position)
+                vehicle_position = VehiclePosition.create(**params)
+                vehicle_positions.append(vehicle_position)
         
         logger.info(f"VehiclePositions feed created, Total: {len(vehicle_positions)}, New: {created}, Updated: {updated}")
 

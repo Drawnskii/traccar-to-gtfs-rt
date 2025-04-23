@@ -82,8 +82,8 @@ class TripUpdate:
         try:
             device_lat = float(device_lat)
             device_lon = float(device_lon)
-            stop_lat = float(stop_lat)
-            stop_lon = float(stop_lon)
+            stop_lat = float(stop_lat.iloc[0])
+            stop_lon = float(stop_lon.iloc[0])
         except Exception as e:
             raise ValueError(f"Error al convertir coordenadas a float: {e}")
 
