@@ -14,7 +14,8 @@ class VehiclePosition:
 
         trip_descriptor = gtfsrt.TripDescriptor(
             route_id=route_id,
-            trip_id=trip_id
+            trip_id=trip_id,
+            schedule_relationship=gtfsrt.TripDescriptor.SCHEDULED
         )
 
         # VehicleDescriptor: uniquely identifies the vehicle
@@ -35,7 +36,8 @@ class VehiclePosition:
         vehicle_position = gtfsrt.VehiclePosition(
             position=position,
             trip=trip_descriptor,
-            vehicle=vehicle_descriptor
+            vehicle=vehicle_descriptor,
+             timestamp=int(datetime.now().timestamp())
         )
 
         return gtfsrt.FeedEntity(

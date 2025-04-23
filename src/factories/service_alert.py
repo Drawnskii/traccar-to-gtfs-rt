@@ -25,7 +25,7 @@ class ServiceAlert:
 
         # Alert - Entities this alert informs
         informed_entity = gtfsrt.EntitySelector(
-            trip=gtfsrt.TripDescriptor(trip_id=trip_id, route_id=route_id)
+            trip=gtfsrt.TripDescriptor(trip_id=trip_id, route_id=route_id, schedule_relationship=gtfsrt.TripDescriptor.SCHEDULED)
         )
 
         # Alert - Header and description translations

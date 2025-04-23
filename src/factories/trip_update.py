@@ -45,7 +45,8 @@ class TripUpdate:
 
         stop_time_update = gtfsrt.TripUpdate.StopTimeUpdate(
             stop_id=stop_id,
-            stop_sequence=stop_sequence
+            stop_sequence=stop_sequence,
+            schedule_relationship=gtfsrt.TripUpdate.StopTimeUpdate.SCHEDULED
         )
 
         stop_time_update.arrival.delay = delay_info["arrival_delay"]
@@ -63,7 +64,8 @@ class TripUpdate:
         trip_update = gtfsrt.TripUpdate(
             trip=trip_descriptor,
             vehicle=vehicle_descriptor,
-            stop_time_update=[stop_time_update]
+            stop_time_update=[stop_time_update],
+            timestamp=int(datetime.now().timestamp())
         )
 
         return gtfsrt.FeedEntity(
@@ -73,10 +75,6 @@ class TripUpdate:
     
     @staticmethod
     def _is_delayed(device_lat, device_lon, stop_lat, stop_lon, stop_arrival_time, stop_departure_time, speed_kmh=30):
-        from geopy.distance import geodesic
-        from datetime import datetime, timedelta
-        import pytz
-
         now = datetime.now(pytz.timezone("America/Guayaquil"))
 
         try:
