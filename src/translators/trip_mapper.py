@@ -1,11 +1,20 @@
+import os
+import pytz
 import pandas as pd
+
+from dotenv import load_dotenv
 from datetime import datetime
 from src.context import gtfs_context
+
+load_dotenv()
 
 class TripMapper:
     @staticmethod
     def map(route_id, device_time):
         dt = datetime.fromisoformat(device_time.replace("Z", "+00:00"))
+        
+        timezone = pytz.timezone(os.getenv("timezone"))
+        dt = dt.astimezone(timezone)
 
         date = dt.strftime("%Y%m%d")
         time = dt.strftime("%H:%M:%S")
