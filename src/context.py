@@ -27,21 +27,21 @@ class DataContext(metaclass=SingletonMeta):
     def __init__(self):
         self.data: Dict[str, Dict[str, Any]] = {}
         self.routes_ids = {
-            1: "50",
-            2: "51",
-            3: "52",
+            1: "55",
+            2: "50",
+            3: "62",
             4: "53",
             5: "54",
-            6: "55",
-            7: "56",
-            8: "57",
-            9: "58",
-            10: "59",
-            11: "60",
-            12: "61",
-            13: "62",
-            14: "63",
-            15: "64",
+            6: "60",
+            7: "51",
+            8: "52",
+            9: "56",
+            10: "57",
+            11: "58",
+            12: "59",
+            59: "61",
+            60: "64",
+            61: "63",
         }
 
     def load_data(self, positions, devices, events):
