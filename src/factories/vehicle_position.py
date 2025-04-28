@@ -1,5 +1,4 @@
 from datetime import datetime
-from google.transit import gtfs_realtime_pb2
 from google.transit import gtfs_realtime_pb2 as gtfsrt
 
 class VehiclePosition:
@@ -10,12 +9,10 @@ class VehiclePosition:
         # TripDescriptor: identifies the trip associated with this vehicle
         route_id = str(kwargs.get("route_id"))
         trip_id = str(kwargs.get("trip_id"))
-        bearing = kwargs.get("bearing")
 
         trip_descriptor = gtfsrt.TripDescriptor(
             route_id=route_id,
             trip_id=trip_id,
-            schedule_relationship=gtfsrt.TripDescriptor.SCHEDULED
         )
 
         # VehicleDescriptor: uniquely identifies the vehicle
@@ -25,6 +22,7 @@ class VehiclePosition:
         # Position: represents the current position and bearing of the vehicle
         latitude = kwargs.get("latitude")
         longitude = kwargs.get("longitude")
+        bearing = kwargs.get("bearing")
 
         position = gtfsrt.Position(
             longitude=longitude,
@@ -32,12 +30,18 @@ class VehiclePosition:
             bearing=bearing
         )
 
+        current_stop_sequence = kwargs.get("current_stop_sequence")
+        stop_id = str(kwargs.get("stop_id"))
+
         # VehiclePosition: encapsulates the real-time vehicle data
         vehicle_position = gtfsrt.VehiclePosition(
             position=position,
             trip=trip_descriptor,
             vehicle=vehicle_descriptor,
-             timestamp=int(datetime.now().timestamp())
+            current_stop_sequence=current_stop_sequence,
+            current_status=gtfsrt.VehiclePosition.VehicleStopStatus.STOPPED_AT,
+            stop_id=stop_id,
+            timestamp=int(datetime.now().timestamp())
         )
 
         return gtfsrt.FeedEntity(

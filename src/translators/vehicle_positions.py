@@ -18,6 +18,8 @@ class VehiclePositions:
         vehicle_positions = []
         for data in context.data.values():
             if "position" in data:
+                entity_id = data["id"]
+
                 position = data.get("position", {})
 
                 route_id = data["route_id"]
@@ -25,21 +27,21 @@ class VehiclePositions:
 
                 trip_data = TripMapper.map(route_id, device_time)
 
-                if not trip_data or len(trip_data) < 1:
+                if trip_data is None:
                     continue
 
-                trip_id = trip_data[0]
+                trip_id, stops = trip_data
 
-                entity_id = data["id"]
-                
                 params = {
                     "entity_id": entity_id,
                     "route_id": route_id,
                     "trip_id": trip_id,
+                    "stop_id": stops[0]["stop_id"],
                     "vehicle_id": data["name"],
                     "bearing": position["course"],
                     "latitude": position["latitude"],
-                    "longitude": position["longitude"]
+                    "longitude": position["longitude"],
+                    "current_stop_sequence": stops[0]["stop_sequence"]
                 }
 
                 if entity_id in VehiclePositions._known_ids:

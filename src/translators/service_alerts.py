@@ -35,30 +35,23 @@ class ServiceAlerts:
                 if not is_valid_event:
                     continue
 
-                device_time = data.get("position", {}).get("deviceTime")
-                
-                trip_data = TripMapper.map(route_id, device_time)
-
-                if not trip_data or len(trip_data) < 1:
-                    continue
-
-                trip_id = trip_data[0]
-
                 event_time = event["eventTime"].replace("Z", "+00:00")
 
+                vehicle_name = data["name"]
+
                 params = {
-                    "entity_id": f"alert-{event['id']}",
-                    "trip_id": trip_id,
+                    "entity_id": f"D{event['id']}",
                     "route_id": route_id,
                     "event_time": event_time,
                     "effect": "DETOUR",
-                    "description_text": f"Vehículo fuera de geocerca en ruta {route_id}",
                     "language": "es",
-                    "header_text": "Alerta de servicio"
+                    "header_text": "Alerta de Desvío",
+                    "description_text": f"Vehículo {vehicle_name}, salió de la geocerca con la ruta {route_id}"
                 }
 
                 service_alert = ServiceAlert.create(**params)
                 service_alerts.append(service_alert)
 
         logger.info(f"ServiceAlerts feed created. Total: {len(service_alerts)}, New: {created}, Updated: {updated}")
+        
         return FeedMessage.create(entities=service_alerts)

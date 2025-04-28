@@ -26,6 +26,23 @@ class SingletonMeta(type):
 class DataContext(metaclass=SingletonMeta):
     def __init__(self):
         self.data: Dict[str, Dict[str, Any]] = {}
+        self.routes_ids = {
+            1: "50",
+            2: "51",
+            3: "52",
+            4: "53",
+            5: "54",
+            6: "55",
+            7: "56",
+            8: "57",
+            9: "58",
+            10: "59",
+            11: "60",
+            12: "61",
+            13: "62",
+            14: "63",
+            15: "64",
+        }
 
     def load_data(self, positions, devices, events):
         if "devices" in devices:
@@ -33,9 +50,9 @@ class DataContext(metaclass=SingletonMeta):
                 device_attributes = device.get("attributes", {})
                 current_geofence = device_attributes.get("currentGeofence")
                 if current_geofence is not None:
-                    device["route_id"] = "60"
-                    # device["route_id"] = re.findall(r"\d+", device["name"])[0]
-                    self.data[device["id"]] = device
+                    if current_geofence in self.routes_ids:
+                        device["route_id"] = self.routes_ids[current_geofence]
+                        self.data[device["id"]] = device
 
         if "events" in events:
             for event in events:
@@ -67,7 +84,7 @@ class DataContext(metaclass=SingletonMeta):
                 "deviceId": device_id,
                 "eventTime": now.strftime("%Y-%m-%dT%H:%M:%S.000+00:00"),
                 "positionId": data.get("positionId", 0),
-                "geofenceId": data.get("attributes", {}).get("currentGeofence", 0),
+                "geofenceId": 0,
                 "maintenanceId": 0,
                 "busStopId": 0
             }

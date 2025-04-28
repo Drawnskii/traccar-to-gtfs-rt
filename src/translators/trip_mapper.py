@@ -24,7 +24,7 @@ class TripMapper:
         first_stops = merged.sort_values(["trip_id", "stop_sequence"]).groupby("trip_id").first().reset_index()
 
         if first_stops.empty:
-            return None, None
+            return None
 
         first_stops["time_diff"] = first_stops["departure_time"].apply(
             lambda t: abs((datetime.strptime(t, "%H:%M:%S") - datetime.strptime(time, "%H:%M:%S")).total_seconds())
@@ -32,15 +32,21 @@ class TripMapper:
 
         best_match = first_stops.sort_values("time_diff").iloc[0]
         trip_id = best_match["trip_id"]
-        stop_id = best_match["stop_id"]
-        stop_sequence = best_match["stop_sequence"]
-        stop_arrival_time = best_match["arrival_time"]
-        stop_departure_time = best_match["departure_time"]
 
-        stops = gtfs_context.stops
-        stop_position = stops[stops["stop_id"] == stop_id]
+        # Get all stops for this trip
+        trip_stops = merged[merged["trip_id"] == trip_id].sort_values("stop_sequence")
 
-        stop_lat = stop_position["stop_lat"]
-        stop_lon = stop_position["stop_lon"]
+        stops_df = pd.merge(trip_stops, gtfs_context.stops, on="stop_id")
 
-        return trip_id, stop_id, stop_lat, stop_lon, stop_arrival_time, stop_departure_time, stop_sequence
+        stops = []
+        
+        for _, row in stops_df.iterrows():
+            stops.append({
+                "stop_sequence": int(row["stop_sequence"]),
+                "stop_id": row["stop_id"],
+                "stop_lat": row["stop_lat"],
+                "stop_lon": row["stop_lon"],
+                "arrival_time": row["arrival_time"]
+            })
+
+        return trip_id, stops
