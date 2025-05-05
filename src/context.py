@@ -67,9 +67,10 @@ class DataContext(metaclass=SingletonMeta):
                     self.data[device_id]["position"] = position
 
         self.test_events()
-
-        with open("data.json", "w") as f:
-            json.dump(self.data, f, indent=4)
+        
+        # Write to file less frequently, e.g., only for debugging
+        # with open("data.json", "w") as f:
+        #     json.dump(self.data, f, indent=4)
 
     def test_events(self) -> None:
         alternate = True
@@ -111,10 +112,67 @@ class DataContext(metaclass=SingletonMeta):
 
 class GtfsDataContext(metaclass=SingletonMeta):
     def __init__(self):
-        self.trips = pd.read_csv(GTFS_PATH/ "trips.txt")
-        self.stops = pd.read_csv(GTFS_PATH / "stops.txt")
-        self.calendar = pd.read_csv(GTFS_PATH / "calendar.txt")
-        self.stop_times = pd.read_csv(GTFS_PATH / "stop_times.txt")
+        # Load GTFS data with optimized dtype specifications for memory efficiency
+        self.trips = pd.read_csv(
+            GTFS_PATH / "trips.txt",
+            dtype={
+                'route_id': 'int32',
+                'service_id': 'category',
+                'trip_id': 'str',
+                'trip_headsign': 'category',
+                'direction_id': 'int8',
+                'shape_id': 'category'
+            }
+        )
+        
+        self.stops = pd.read_csv(
+            GTFS_PATH / "stops.txt",
+            dtype={
+                'stop_id': 'str',
+                'stop_name': 'category',
+                'stop_lat': 'float32',
+                'stop_lon': 'float32'
+            }
+        )
+        
+        self.calendar = pd.read_csv(
+            GTFS_PATH / "calendar.txt",
+            dtype={
+                'service_id': 'category',
+                'monday': 'int8',
+                'tuesday': 'int8',
+                'wednesday': 'int8',
+                'thursday': 'int8',
+                'friday': 'int8',
+                'saturday': 'int8',
+                'sunday': 'int8',
+                'start_date': 'int32',
+                'end_date': 'int32'
+            }
+        )
+        
+        self.stop_times = pd.read_csv(
+            GTFS_PATH / "stop_times.txt",
+            dtype={
+                'trip_id': 'str',
+                'arrival_time': 'str',
+                'departure_time': 'str',
+                'stop_id': 'str',
+                'stop_sequence': 'int16'
+            }
+        )
+        
+        # Pre-process stop_times to optimize frequently used queries
+        self._prepare_stop_times_index()
+        
+        logger.info("GTFS data loaded successfully")
+        
+    def _prepare_stop_times_index(self):
+        # Create an index on trip_id for faster lookup
+        self.stop_times.set_index('trip_id', inplace=True)
+        self.stop_times.sort_index(inplace=True)
+        
+        # We'll reset it when needed in specific queries
 
 context: DataContext = DataContext()
 gtfs_context: GtfsDataContext = GtfsDataContext()

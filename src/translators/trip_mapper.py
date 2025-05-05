@@ -1,14 +1,26 @@
 import os
 import pytz
 import pandas as pd
+import logging
+from functools import lru_cache
+from typing import Dict, List, Tuple, Optional
 
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.context import gtfs_context
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 class TripMapper:
+    # Cache for storing previously calculated trip mappings
+    _cache: Dict[str, Tuple[str, List[Dict]]] = {}
+    # Cache expiration time (in seconds)
+    _cache_expiry: Dict[str, datetime] = {}
+    # Cache lifetime (10 minutes)
+    _cache_lifetime = timedelta(minutes=10)
+
     @staticmethod
     def map(route_id, device_time):
         dt = datetime.fromisoformat(device_time.replace("Z", "+00:00"))
@@ -18,6 +30,34 @@ class TripMapper:
 
         date = dt.strftime("%Y%m%d")
         time = dt.strftime("%H:%M:%S")
+        
+        # Create a cache key based on route_id and approximate time (rounded to the nearest minute)
+        rounded_time = dt.replace(second=0, microsecond=0)
+        cache_key = f"{route_id}_{date}_{rounded_time.strftime('%H:%M')}"
+        
+        # Check if we have a valid cached result
+        now = datetime.now()
+        if cache_key in TripMapper._cache and TripMapper._cache_expiry.get(cache_key, datetime.min) > now:
+            return TripMapper._cache[cache_key]
+            
+        # If not in cache or expired, calculate the mapping
+        result = TripMapper._calculate_mapping(route_id, dt, date, time)
+        
+        # Cache the result if valid
+        if result:
+            TripMapper._cache[cache_key] = result
+            TripMapper._cache_expiry[cache_key] = now + TripMapper._cache_lifetime
+            
+            # Clean old cache entries
+            expired_keys = [k for k, v in TripMapper._cache_expiry.items() if v <= now]
+            for k in expired_keys:
+                TripMapper._cache.pop(k, None)
+                TripMapper._cache_expiry.pop(k, None)
+        
+        return result
+    
+    @staticmethod
+    def _calculate_mapping(route_id, dt, date, time) -> Optional[Tuple[str, List[Dict]]]:
         weekday = dt.strftime("%A").lower()
 
         calendar = gtfs_context.calendar
