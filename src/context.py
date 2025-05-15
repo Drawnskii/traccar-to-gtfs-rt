@@ -44,29 +44,27 @@ class DataContext(metaclass=SingletonMeta):
             61: "63",
         }
 
-    def load_data(self, positions, devices, events):
-        if "devices" in devices:
-            for device in devices["devices"]:
+    def load_data(self, message):
+        if "devices" in message:
+            for device in message["devices"]:
                 device_attributes = device.get("attributes", {})
                 current_geofence = device_attributes.get("currentGeofence")
                 if current_geofence is not None:
                     if current_geofence in self.routes_ids:
                         device["route_id"] = self.routes_ids[current_geofence]
                         self.data[device["id"]] = device
-
-        if "events" in events:
-            for event in events:
+        elif "events" in message:
+            for event in message["events"]:
                 device_id = event["deviceId"]
                 if device_id in self.data:
                     self.data[device_id]["event"] = event
-
-        if "positions" in positions:
-            for position in positions["positions"]:
+        elif "positions" in message:
+            for position in message["positions"]:
                 device_id = position["deviceId"]
                 if device_id in self.data: 
                     self.data[device_id]["position"] = position
 
-        self.test_events()
+        # self.test_events()
         
         # Write to file less frequently, e.g., only for debugging
         # with open("data.json", "w") as f:
